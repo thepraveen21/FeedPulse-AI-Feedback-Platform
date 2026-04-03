@@ -163,14 +163,17 @@ export default function DashboardPage() {
     finally { setActionLoading(null); }
   };
 
-  const handleGetSummary = async () => {
-    setSummaryLoading(true);
-    try {
-      const res = await getAISummary();
-      setAiSummary(JSON.stringify(res.data.summary, null, 2));
-    } catch { toast.error('Failed to get summary'); }
-    finally { setSummaryLoading(false); }
-  };
+const handleGetSummary = async () => {
+  setSummaryLoading(true);
+  try {
+    const res = await getAISummary();
+    setAiSummary(res.data.summary);
+  } catch {
+    toast.error('Failed to get summary');
+  } finally {
+    setSummaryLoading(false);
+  }
+};
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -285,18 +288,47 @@ export default function DashboardPage() {
               Generate
             </button>
           </div>
-          {aiSummary ? (
-            <pre className="text-slate-400 text-xs bg-white/[0.03] border border-white/5 rounded-xl p-4 overflow-auto whitespace-pre-wrap font-mono leading-relaxed">
-              {aiSummary}
-            </pre>
-          ) : (
-            <div className="flex items-center gap-3 bg-white/[0.02] border border-white/5 rounded-xl p-4">
-              <Sparkles className="w-4 h-4 text-slate-600 shrink-0" />
-              <p className="text-slate-600 text-sm">
-                Click Generate to get AI insights on the last 7 days of feedback.
-              </p>
-            </div>
-          )}
+         {aiSummary ? (
+  <div className="space-y-4">
+    {aiSummary.split('\n\n').map((block, i) => {
+      const isHeading = block.startsWith('TOP 3') || block.startsWith('OVERALL');
+      const isNumbered = /^\d\./.test(block.trim());
+
+      if (isHeading) {
+        return (
+          <p key={i} className="text-xs font-semibold text-violet-400 uppercase tracking-widest">
+            {block.trim()}
+          </p>
+        );
+      }
+
+      if (isNumbered) {
+        const lines = block.trim().split('\n');
+        const title = lines[0];
+        const body = lines.slice(1).join(' ');
+        return (
+          <div key={i} className="bg-white/[0.02] border border-white/5 rounded-xl p-4">
+            <p className="text-sm font-semibold text-white mb-1">{title}</p>
+            {body && <p className="text-sm text-slate-400 leading-relaxed">{body}</p>}
+          </div>
+        );
+      }
+
+      return (
+        <p key={i} className="text-sm text-slate-400 leading-relaxed">
+          {block.trim()}
+        </p>
+      );
+    })}
+  </div>
+) : (
+  <div className="flex items-center gap-3 bg-white/[0.02] border border-white/5 rounded-xl p-4">
+    <Sparkles className="w-4 h-4 text-slate-600 shrink-0" />
+    <p className="text-slate-600 text-sm">
+      Click Generate to get AI insights on the last 7 days of feedback.
+    </p>
+  </div>
+)}
         </div>
 
         {/* Search + Filters */}

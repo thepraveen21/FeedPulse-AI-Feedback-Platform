@@ -154,4 +154,8 @@ Password: admin123456
 ### Admin Dashboard
 ![Dashboard](./screenshots/dashboard.png)
 
+### Ai Summery
+![AI Summary](./screenshots/ai-summary.png) 
+
+![AI Summary](./screenshots/ai-summary-2.png) 
 

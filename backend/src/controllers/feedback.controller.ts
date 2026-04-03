@@ -308,24 +308,78 @@ export const getAISummary = async (
       return;
     }
 
-    const { analyzeFeedback: analyzeWithGemini } = await import(
-      '../services/gemini.service'
-    );
-
     const feedbackText = recentFeedbacks
       .map((f) => `- ${f.title}: ${f.ai_summary || f.description}`)
       .join('\n');
 
-    const summary = await analyzeWithGemini(
-      'Weekly Summary Request',
-      `Summarise these feedbacks and identify top 3 themes:\n${feedbackText}`
-    );
+    const prompt = `You are a product analyst. Analyse these product feedback items and identify the top 3 themes. 
+    
+Feedback from the last 7 days:
+${feedbackText}
+
+Return ONLY a clean plain text response in this exact format with no JSON, no markdown, no code blocks:
+
+TOP 3 THEMES
+
+1. [Theme Name]
+[2-3 sentence explanation of this theme and why it matters]
+
+2. [Theme Name]
+[2-3 sentence explanation of this theme and why it matters]
+
+3. [Theme Name]
+[2-3 sentence explanation of this theme and why it matters]
+
+OVERALL INSIGHT
+[One paragraph summarising the overall product health based on this feedback]`;
+
+    const body = JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+    });
+
+    const https = await import('https');
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    const result = await new Promise<string>((resolve, reject) => {
+      const req2 = https.default.request(
+        {
+          hostname: 'generativelanguage.googleapis.com',
+          path: `/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(body),
+          },
+        },
+        (res2) => {
+          let data = '';
+          res2.on('data', (chunk) => (data += chunk));
+          res2.on('end', () => resolve(data));
+        }
+      );
+      req2.on('error', reject);
+      req2.write(body);
+      req2.end();
+    });
+
+    const json = JSON.parse(result);
+    const text = json.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+    if (!text) {
+      res.status(200).json({
+        success: true,
+        message: 'Summary generated',
+        error: null,
+        data: { summary: 'Unable to generate summary at this time.' },
+      });
+      return;
+    }
 
     res.status(200).json({
       success: true,
       message: 'Summary generated successfully',
       error: null,
-      data: { summary },
+      data: { summary: text },
     });
   } catch (error) {
     res.status(500).json({
