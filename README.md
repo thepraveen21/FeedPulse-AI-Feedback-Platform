@@ -154,18 +154,4 @@ Password: admin123456
 ### Admin Dashboard
 ![Dashboard](./screenshots/dashboard.png)
 
-## What I Would Build Next
 
-<!-- Given more time, I would add the following:
-
-- **Real-time notifications** — WebSocket-based alerts when high priority feedback is submitted
-- **Email notifications** — Notify the team when critical bugs are reported
-- **Analytics dashboard** — Charts showing feedback trends over time using Chart.js
-- **Docker support** — Full containerisation with docker-compose for one-command setup
-- **Unit tests** — Jest test suite covering all API endpoints and the Gemini service
-- **User accounts** — Allow multiple admin users with different permission levels
-- **Export to CSV** — Let admins export feedback data for reporting -->
-
-## License
-
-MIT
